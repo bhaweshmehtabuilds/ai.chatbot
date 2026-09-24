@@ -14,12 +14,20 @@ app = Flask(__name__)
 
 
 def load_api_key(path=KEY_FILE):
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith("sk-"):
-                return line
-    raise RuntimeError("No API key found in %s" % path)
+    key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    if key:
+        return key
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("sk-"):
+                    return line
+    except FileNotFoundError:
+        pass
+    raise RuntimeError(
+        "No API key found: set OPENROUTER_API_KEY or create %s" % path
+    )
 
 
 def call_llm(messages, tools=None):
@@ -133,4 +141,4 @@ def reset():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000)
